@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#102018">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Discipline OS">
+  <title>Discipline OS</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">D</div>
+        <div>
+          <strong>Discipline OS</strong>
+          <span>Личная система</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Разделы">
+        <button class="nav-button active" data-view="today" type="button">
+          <span class="nav-icon">⌂</span><span>Сегодня</span>
+        </button>
+        <button class="nav-button" data-view="tasks" type="button">
+          <span class="nav-icon">✓</span><span>Задачи</span>
+        </button>
+        <button class="nav-button" data-view="calendar" type="button">
+          <span class="nav-icon">▦</span><span>Календарь</span>
+        </button>
+        <button class="nav-button" data-view="projects" type="button">
+          <span class="nav-icon">◇</span><span>Проекты</span>
+        </button>
+        <button class="nav-button" data-view="goals" type="button">
+          <span class="nav-icon">★</span><span>Цели</span>
+        </button>
+        <button class="nav-button" data-view="progress" type="button">
+          <span class="nav-icon">↗</span><span>Прогресс</span>
+        </button>
+        <button class="nav-button" data-view="shop" type="button">
+          <span class="nav-icon">$</span><span>Магазин</span>
+        </button>
+        <button class="nav-button" data-view="garage" type="button">
+          <span class="nav-icon">◆</span><span>Гараж</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="level-card">
+          <div class="level-top">
+            <span>Уровень <strong id="levelValue">1</strong></span>
+            <strong id="xpValue">$0</strong>
+          </div>
+          <div class="progress-track"><div id="levelProgress" class="progress-fill"></div></div>
+          <span id="levelCaption">До следующего уровня: $100</span>
+        </div>
+        <div class="data-actions">
+          <button id="exportButton" class="text-button" type="button">Экспорт</button>
+          <label class="text-button import-label">
+            Импорт
+            <input id="importInput" type="file" accept="application/json">
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Дисциплина создаёт свободу</p>
+          <h1 id="pageTitle">Сегодня</h1>
+          <p id="currentDate" class="date-line"></p>
+        </div>
+        <div class="topbar-actions">
+          <div class="streak-pill" title="Дни, когда выполнено не менее 5 привычек">
+            <span class="streak-flame" aria-hidden="true">🔥</span>
+            <span>Серия</span><strong id="streakValue">0 дней</strong>
+          </div>
+          <button id="resetTodayButton" class="icon-button" title="Сбросить отметки за сегодня" type="button">↺</button>
+        </div>
+      </header>
+
+      <section id="todayView" class="view active">
+        <section class="stats-row">
+          <article class="stat">
+            <span>Прогресс дня</span>
+            <strong id="todayPercent">0%</strong>
+            <div class="progress-track"><div id="todayProgress" class="progress-fill green"></div></div>
+          </article>
+          <article class="stat">
+            <span>Заработано сегодня</span>
+            <strong id="todayXp">$0</strong>
+            <p id="xpHint">Начни с главного</p>
+          </article>
+          <article class="stat">
+            <span>Неделя</span>
+            <strong id="weekPercent">0%</strong>
+            <p id="weekHint">Среднее выполнение</p>
+          </article>
+        </section>
+
+        <section class="today-grid">
+          <article class="panel habits-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Ежедневный минимум</p>
+                <h2>Привычки</h2>
+              </div>
+              <div class="habit-head-actions">
+                <strong id="habitCounter">0 / 6</strong>
+                <button id="addHabitButton" class="small-button" type="button">+ Добавить</button>
+              </div>
+            </div>
+            <div class="habit-date-nav">
+              <button id="habitPrevDay" class="mini-icon-button" type="button" title="Предыдущий день">←</button>
+              <strong id="habitDateLabel">Сегодня</strong>
+              <button id="habitNextDay" class="mini-icon-button" type="button" title="Следующий день">→</button>
+            </div>
+            <div id="habitList" class="habit-list"></div>
+          </article>
+
+          <article class="panel timer-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Один блок за раз</p>
+                <h2>Фокус</h2>
+              </div>
+              <div class="segmented" aria-label="Длительность Pomodoro">
+                <button class="segment active" data-minutes="25" type="button">25</button>
+                <button class="segment" data-minutes="50" type="button">50</button>
+              </div>
+            </div>
+            <div class="timer-face">
+              <span id="timerLabel">Работа</span>
+              <strong id="timerDisplay">25:00</strong>
+            </div>
+            <div class="timer-actions">
+              <button id="timerToggle" class="primary-button" type="button">Начать</button>
+              <button id="timerReset" class="icon-button" title="Сбросить таймер" type="button">↺</button>
+            </div>
+            <p id="timerReward" class="timer-reward">+$10 за завершение</p>
+          </article>
+        </section>
+
+        <section class="today-grid lower">
+          <article class="panel today-tasks-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">План на сегодня</p>
+                <h2>Задачи</h2>
+              </div>
+              <button class="small-button" data-add-task-date="today" type="button">+ Добавить</button>
+            </div>
+            <div id="todayTaskList" class="task-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Три направления</p>
+                <h2>Проекты</h2>
+              </div>
+            </div>
+            <div id="todayProjectList" class="project-list compact"></div>
+          </article>
+
+        </section>
+
+        <section class="today-grid lower single">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Последние 7 дней</p>
+                <h2>Ритм недели</h2>
+              </div>
+            </div>
+            <div id="weekChart" class="week-chart"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="tasksView" class="view">
+        <article class="panel tasks-workspace">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Планирование по датам</p>
+              <h2>Задачи</h2>
+            </div>
+            <button class="primary-button" data-add-task-date="today" type="button">+ Новая задача</button>
+          </div>
+          <form id="quickTaskForm" class="quick-task-form">
+            <label class="quick-task-title">
+              <span>Быстро добавить задачу</span>
+              <input id="quickTaskTitle" type="text" maxlength="120" placeholder="Напиши задачу и нажми Enter" autocomplete="off" required>
+            </label>
+            <label>
+              <span>Дата</span>
+              <input id="quickTaskDate" type="date" required>
+            </label>
+            <label>
+              <span>Проект</span>
+              <select id="quickTaskProject"></select>
+            </label>
+            <label>
+              <span>Приоритет</span>
+              <select id="quickTaskPriority">
+                <option value="medium">Средний</option>
+                <option value="high">Срочный</option>
+                <option value="low">Спокойный</option>
+              </select>
+            </label>
+            <label class="difficulty-control">
+              <span class="difficulty-head"><span>Сложность</span><strong id="quickTaskDifficultyLabel">Средняя · $25</strong></span>
+              <input id="quickTaskDifficulty" data-difficulty-range type="range" min="1" max="3" step="1" value="2">
+              <span class="difficulty-ticks"><span>Лёгкая</span><span>Средняя</span><span>Тяжёлая</span></span>
+            </label>
+            <button class="primary-button quick-add-button" type="submit">Добавить</button>
+          </form>
+          <div class="task-toolbar">
+            <button class="filter-button active" data-task-filter="upcoming" type="button">Предстоящие</button>
+            <button class="filter-button" data-task-filter="today" type="button">Сегодня</button>
+            <button class="filter-button" data-task-filter="all" type="button">Все</button>
+          </div>
+          <div id="taskWorkspaceList" class="task-groups"></div>
+        </article>
+      </section>
+
+      <section id="calendarView" class="view">
+        <article class="panel calendar-panel">
+          <div class="panel-head calendar-head">
+            <div>
+              <p class="eyebrow">История отметок</p>
+              <h2 id="calendarTitle">Календарь</h2>
+            </div>
+            <div class="calendar-actions">
+              <button id="prevMonth" class="icon-button" title="Предыдущий месяц" type="button">←</button>
+              <button id="nextMonth" class="icon-button" title="Следующий месяц" type="button">→</button>
+            </div>
+          </div>
+          <div class="calendar-weekdays">
+            <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+          </div>
+          <div id="calendarGrid" class="calendar-grid"></div>
+          <div class="calendar-legend">
+            <span><i class="legend-dot empty"></i> Нет отметок</span>
+            <span><i class="legend-dot partial"></i> Частично</span>
+            <span><i class="legend-dot good"></i> Хороший день</span>
+            <span><i class="legend-dot perfect"></i> Полный день</span>
+          </div>
+        </article>
+      </section>
+
+      <section id="projectsView" class="view">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Движение вперёд</p>
+              <h2>Текущие проекты</h2>
+            </div>
+            <button id="addProjectButton" class="primary-button" type="button">+ Новый проект</button>
+          </div>
+          <div id="projectList" class="project-list"></div>
+        </article>
+      </section>
+
+      <section id="goalsView" class="view">
+        <section class="goals-hero">
+          <div>
+            <p class="eyebrow">Личный компас</p>
+            <h2>Цели и мечты</h2>
+            <p>Здесь не просто список желаний. Здесь видно, ради чего ты держишь режим, закрываешь задачи и собираешь свою будущую свободу.</p>
+          </div>
+          <div class="goals-hero-card">
+            <span>Курс</span>
+            <strong id="northStarTitle">Сформулируй главный ориентир</strong>
+            <small id="northStarCaption">Ответь на вопросы ниже, и система станет твоей картой.</small>
+          </div>
+        </section>
+
+        <section class="stats-row goal-stats">
+          <article class="stat">
+            <span>Активных целей</span>
+            <strong id="activeGoalCount">0</strong>
+            <p>измеримые шаги к свободе</p>
+          </article>
+          <article class="stat">
+            <span>Средний прогресс</span>
+            <strong id="goalAverageProgress">0%</strong>
+            <div class="progress-track"><div id="goalAverageBar" class="progress-fill green"></div></div>
+          </article>
+          <article class="stat">
+            <span>Мечты</span>
+            <strong id="dreamCount">0</strong>
+            <p>то, что заряжает идти дальше</p>
+          </article>
+        </section>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Сначала ответь себе</p>
+              <h2>Вопросы для направления</h2>
+            </div>
+          </div>
+          <div id="goalPromptList" class="goal-prompts"></div>
+        </article>
+
+        <section class="goal-dream-layout">
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">То, что можно измерить</p>
+                <h2>Цели</h2>
+              </div>
+              <button id="addGoalButton" class="primary-button" type="button">+ Цель</button>
+            </div>
+            <div id="goalList" class="goal-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">То, ради чего хочется жить шире</p>
+                <h2>Мечты</h2>
+              </div>
+              <button id="addDreamButton" class="primary-button" type="button">+ Мечта</button>
+            </div>
+            <div id="dreamList" class="dream-list"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="progressView" class="view">
+        <section class="stats-row progress-stats">
+          <article class="stat">
+            <span>Всего заработано</span>
+            <strong id="progressTotalXp">$0</strong>
+            <p>за привычки, задачи и серии</p>
+          </article>
+          <article class="stat">
+            <span>Сегодня</span>
+            <strong id="progressTodayXp">$0</strong>
+            <p>текущий вклад в рост</p>
+          </article>
+          <article class="stat">
+            <span>Текущая серия</span>
+            <strong id="progressStreak">0 дней</strong>
+            <p id="nextStreakBonus">Следующий бонус: 3 дня</p>
+          </article>
+          <article class="stat">
+            <span>Бонусы за серии</span>
+            <strong id="streakBonusXp">$0</strong>
+            <p>заработано дополнительно</p>
+          </article>
+        </section>
+
+        <section class="progress-grid">
+          <article class="panel progress-chart-panel">
+            <div class="panel-head progress-head">
+              <div>
+                <p class="eyebrow">Движение вверх</p>
+                <h2>График долларов</h2>
+              </div>
+              <div class="progress-controls">
+                <div class="segmented">
+                  <button class="segment active" data-progress-mode="cumulative" type="button">Накопление</button>
+                  <button class="segment" data-progress-mode="daily" type="button">По дням</button>
+                </div>
+                <div class="segmented">
+                  <button class="segment active" data-progress-period="7" type="button">7</button>
+                  <button class="segment" data-progress-period="30" type="button">30</button>
+                  <button class="segment" data-progress-period="60" type="button">60</button>
+                </div>
+              </div>
+            </div>
+            <div id="xpChart" class="xp-chart"></div>
+          </article>
+
+          <article class="panel milestone-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Контрольные точки</p>
+                <h2>Бонусы серии</h2>
+              </div>
+            </div>
+            <div id="milestoneList" class="milestone-list"></div>
+          </article>
+        </section>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Что приносит доллары</p>
+              <h2>История событий</h2>
+            </div>
+          </div>
+          <div id="eventHistory" class="event-history"></div>
+        </article>
+      </section>
+
+      <section id="shopView" class="view game-view">
+        <section class="game-hero">
+          <div>
+            <p class="game-eyebrow">Discipline rewards</p>
+            <h2>Машина наград</h2>
+            <p>Зарабатывай доллары за реальные действия и открывай коллекционные машины.</p>
+          </div>
+          <div class="wallet-card">
+            <span>Доступно</span>
+            <strong id="shopBalance">$0</strong>
+            <small id="shopBalanceCaption">Стартовый бонус включён</small>
+          </div>
+        </section>
+
+        <section class="reward-machine">
+          <div class="machine-top">
+            <div>
+              <p class="game-eyebrow">Standard machine</p>
+              <h2>Гаражный кейс</h2>
+            </div>
+            <div class="machine-cost"><span>Стоимость</span><strong>$200</strong></div>
+          </div>
+          <div class="reel-window">
+            <i class="reel-marker"></i>
+            <div id="carReel" class="car-reel"></div>
+          </div>
+          <div class="machine-actions">
+            <button id="spinButton" class="spin-button" type="button">Открыть за $200</button>
+            <p id="spinStatus">Внутри машины пять уровней редкости.</p>
+          </div>
+        </section>
+
+        <section class="shop-bottom-grid">
+          <article class="game-panel">
+            <p class="game-eyebrow">Шансы выпадения</p>
+            <div id="rarityOdds" class="rarity-odds"></div>
+          </article>
+          <article class="game-panel">
+            <p class="game-eyebrow">Статистика</p>
+            <div id="shopStats" class="shop-stats"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="garageView" class="view game-view">
+        <section class="game-hero garage-hero">
+          <div>
+            <p class="game-eyebrow">Collection</p>
+            <h2>Твой гараж</h2>
+            <p>Каждая машина напоминает о завершённых задачах и сохранённом ритме.</p>
+          </div>
+          <div class="collection-card">
+            <span>Коллекция</span>
+            <strong id="collectionProgress">0 / 14</strong>
+            <small id="collectionPercent">0% открыто</small>
+          </div>
+        </section>
+        <div class="garage-toolbar">
+          <div class="garage-filters">
+            <button class="filter-button active" data-garage-filter="all" type="button">Все</button>
+            <button class="filter-button" data-garage-filter="common" type="button">Обычные</button>
+            <button class="filter-button" data-garage-filter="rare" type="button">Редкие</button>
+            <button class="filter-button" data-garage-filter="epic" type="button">Эпические</button>
+            <button class="filter-button" data-garage-filter="legendary" type="button">Легендарные</button>
+            <button class="filter-button" data-garage-filter="mythic" type="button">Мифические</button>
+          </div>
+        </div>
+        <div id="garageGrid" class="garage-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="taskDialog" class="dialog">
+    <form id="taskForm" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Конкретный следующий шаг</p>
+          <h2 id="taskDialogTitle">Новая задача</h2>
+        </div>
+        <button class="icon-button" data-close-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <input id="taskIdInput" type="hidden">
+      <label class="field">
+        <span>Что нужно сделать</span>
+        <input id="taskTitleInput" type="text" maxlength="120" placeholder="Например: пройти пробник по истории" required>
+      </label>
+      <div class="form-grid">
+        <label class="field">
+          <span>Дата</span>
+          <input id="taskDateInput" type="date" required>
+        </label>
+        <label class="field">
+          <span>Проект</span>
+          <select id="taskProjectInput"></select>
+        </label>
+        <label class="field">
+          <span>Приоритет</span>
+          <select id="taskPriorityInput">
+            <option value="medium">Средний</option>
+            <option value="high">Срочный</option>
+            <option value="low">Спокойный</option>
+          </select>
+        </label>
+        <label class="field difficulty-control">
+          <span class="difficulty-head"><span>Сложность</span><strong id="taskDifficultyLabel">Средняя · $25</strong></span>
+          <input id="taskDifficultyInput" data-difficulty-range type="range" min="1" max="3" step="1" value="2">
+          <span class="difficulty-ticks"><span>Лёгкая</span><span>Средняя</span><span>Тяжёлая</span></span>
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary-button" data-close-dialog type="button">Отмена</button>
+        <button class="primary-button" type="submit">Сохранить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dayDialog" class="dialog">
+    <section class="dialog-card day-dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">План дня</p>
+          <h2 id="dayDialogTitle"></h2>
+        </div>
+        <button class="icon-button" data-close-day-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <div id="dayDialogTasks" class="task-list"></div>
+      <button id="dayAddTaskButton" class="primary-button full-button" type="button">+ Добавить задачу на этот день</button>
+    </section>
+  </dialog>
+
+  <dialog id="projectDialog" class="dialog">
+    <section class="dialog-card project-dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Проект</p>
+          <h2 id="projectDialogTitle"></h2>
+        </div>
+        <button class="icon-button" data-close-project-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <div id="projectDialogTasks" class="task-list"></div>
+      <button id="projectAddTaskButton" class="primary-button full-button" type="button">+ Добавить задачу в проект</button>
+    </section>
+  </dialog>
+
+  <dialog id="addProjectDialog" class="dialog">
+    <form id="addProjectForm" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Новое направление</p>
+          <h2>Добавить проект</h2>
+        </div>
+        <button class="icon-button" data-close-add-project-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <label class="field">
+        <span>Название проекта</span>
+        <input id="projectNameInput" type="text" maxlength="60" placeholder="Например: Личный сайт" required>
+      </label>
+      <label class="field">
+        <span>Короткое описание</span>
+        <input id="projectCaptionInput" type="text" maxlength="100" placeholder="Например: собрать портфолио и опубликовать">
+      </label>
+      <div class="dialog-actions">
+        <button class="secondary-button" data-close-add-project-dialog type="button">Отмена</button>
+        <button class="primary-button" type="submit">Добавить проект</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="addHabitDialog" class="dialog">
+    <form id="addHabitForm" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Новый ежедневный шаг</p>
+          <h2>Добавить привычку</h2>
+        </div>
+        <button class="icon-button" data-close-add-habit-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <label class="field">
+        <span>Название привычки</span>
+        <input id="habitNameInput" type="text" maxlength="70" placeholder="Например: прогулка 30 минут" required>
+      </label>
+      <label class="field">
+        <span>Короткое пояснение</span>
+        <input id="habitCaptionInput" type="text" maxlength="100" placeholder="Например: восстановить внимание">
+      </label>
+      <label class="field">
+        <span>Награда в долларах</span>
+        <input id="habitXpInput" type="number" min="1" max="100" step="1" value="15" required>
+      </label>
+      <div class="dialog-actions">
+        <button class="secondary-button" data-close-add-habit-dialog type="button">Отмена</button>
+        <button class="primary-button" type="submit">Добавить привычку</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="subtaskDialog" class="dialog subtask-dialog">
+    <section class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Маленькие шаги</p>
+          <h2 id="subtaskDialogTitle"></h2>
+          <p id="subtaskDialogMeta" class="subtask-meta"></p>
+        </div>
+        <button class="icon-button" data-close-subtask-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <form id="subtaskForm" class="subtask-form">
+        <input id="subtaskTitleInput" type="text" maxlength="120" placeholder="Добавить маленький шаг" autocomplete="off" required>
+        <button class="primary-button" type="submit">+ Добавить</button>
+      </form>
+      <div id="subtaskList" class="subtask-list"></div>
+    </section>
+  </dialog>
+
+  <dialog id="goalDialog" class="dialog">
+    <form id="goalForm" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Измеримый шаг</p>
+          <h2 id="goalDialogTitle">Новая цель</h2>
+        </div>
+        <button class="icon-button" data-close-goal-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <input id="goalIdInput" type="hidden">
+      <label class="field">
+        <span>Название цели</span>
+        <input id="goalTitleInput" type="text" maxlength="80" placeholder="Например: собрать портфолио UX/UI" required>
+      </label>
+      <label class="field">
+        <span>Зачем это тебе</span>
+        <input id="goalWhyInput" type="text" maxlength="140" placeholder="Например: чтобы получать первые заказы">
+      </label>
+      <div class="form-grid">
+        <label class="field">
+          <span>Срок</span>
+          <input id="goalTargetInput" type="date">
+        </label>
+        <label class="field">
+          <span>Прогресс, %</span>
+          <input id="goalProgressInput" type="number" min="0" max="100" step="5" value="0">
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary-button" data-close-goal-dialog type="button">Отмена</button>
+        <button class="primary-button" type="submit">Сохранить цель</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dreamDialog" class="dialog">
+    <form id="dreamForm" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">Большой ориентир</p>
+          <h2 id="dreamDialogTitle">Новая мечта</h2>
+        </div>
+        <button class="icon-button" data-close-dream-dialog type="button" title="Закрыть">×</button>
+      </div>
+      <input id="dreamIdInput" type="hidden">
+      <label class="field">
+        <span>Название мечты</span>
+        <input id="dreamTitleInput" type="text" maxlength="80" placeholder="Например: путешествовать и работать удаленно" required>
+      </label>
+      <label class="field">
+        <span>Почему это важно</span>
+        <input id="dreamWhyInput" type="text" maxlength="160" placeholder="Например: это чувство свободы и выбранной жизни">
+      </label>
+      <div class="form-grid">
+        <label class="field">
+          <span>Первый реальный шаг</span>
+          <input id="dreamStepInput" type="text" maxlength="120" placeholder="Например: выйти на 50 000 рублей удаленно">
+        </label>
+        <label class="field">
+          <span>Символ</span>
+          <input id="dreamSymbolInput" type="text" maxlength="2" placeholder="★">
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button class="secondary-button" data-close-dream-dialog type="button">Отмена</button>
+        <button class="primary-button" type="submit">Сохранить мечту</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="carDetailDialog" class="car-detail-dialog">
+    <section id="carDetailPanel" class="car-detail-panel">
+      <button class="reward-close" data-close-car-detail type="button" title="Закрыть">×</button>
+      <div class="car-detail-layout">
+        <div class="car-detail-showcase">
+          <div id="carDetailVisual" class="car-detail-visual"></div>
+          <span id="carDetailRarity" class="rarity-badge car-detail-rarity"></span>
+          <h2 id="carDetailName"></h2>
+          <p id="carDetailDescription"></p>
+          <div id="carDetailCollection" class="car-detail-collection"></div>
+          <button id="carDetailSelectButton" class="spin-button car-detail-select" data-select-car="" type="button">Выбрать машину</button>
+        </div>
+        <div class="car-detail-content">
+          <div>
+            <p class="game-eyebrow">Техническое досье</p>
+            <div id="carDetailSpecs" class="car-detail-specs"></div>
+          </div>
+          <div class="car-detail-text">
+            <span>История</span>
+            <p id="carDetailStory"></p>
+          </div>
+          <div class="car-detail-text">
+            <span>Факт</span>
+            <p id="carDetailFact"></p>
+          </div>
+          <div class="car-detail-text">
+            <span>Почему такая редкость</span>
+            <p id="carDetailRarityReason"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </dialog>
+
+  <dialog id="rewardDialog" class="reward-dialog">
+    <section id="rewardReveal" class="reward-reveal">
+      <button class="reward-close" data-close-reward-dialog type="button" title="Закрыть">×</button>
+      <p class="game-eyebrow">Новая награда</p>
+      <div id="rewardCarVisual" class="reward-car-visual"></div>
+      <span id="rewardRarity" class="rarity-badge"></span>
+      <h2 id="rewardCarName"></h2>
+      <p id="rewardCarDescription"></p>
+      <strong id="rewardDuplicate"></strong>
+      <button class="spin-button reward-continue" data-close-reward-dialog type="button">Забрать в гараж</button>
+    </section>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
